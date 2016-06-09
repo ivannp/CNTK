@@ -341,6 +341,9 @@ public:
                                  const ElemType initValueScale,
                                  bool initOnCPUOnly = false);
 
+    template <class ElemType>
+    void InitLearnableParametersWithBilinearFill(const ComputationNodeBasePtr& node, int kernelWidth, int kernelHeight);
+
     template <typename N>
     static shared_ptr<N> AsNodePtr(const ComputationNodeBasePtr& inode)
     {

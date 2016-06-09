@@ -55,6 +55,9 @@ public:
     // if 'initOnCPUOnly' then always init on CPU, making initialization consistent across both (for testing)
     void InitRandom(const bool uniformInit, const unsigned long randomSeed, const ElemType initValueScale, bool initOnCPUOnly);
 
+    // Initialize with bilinear interpolation coefficients (useful for deconvolution layer).
+    void InitBilinear(int kernelWidth, int kernelHeight);
+
     // initialize by reading a matrix from a text file
     void InitFromFile(const std::wstring& initFromFilePath);
 

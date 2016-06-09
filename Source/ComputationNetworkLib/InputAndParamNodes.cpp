@@ -51,6 +51,12 @@ LearnableParameter<ElemType>::LearnableParameter(const ScriptableObjects::IConfi
         int forcedRandomSeed = configp->Get(L"randomSeed"); // forcing a specific random seed is useful for testing to get repeatable initialization independent of evaluation order
         InitRandom((initString == L"uniform"), forcedRandomSeed < 0 ? randomSeed++ : (unsigned long) forcedRandomSeed, configp->Get(L"initValueScale"), configp->Get(L"initOnCPUOnly"));
     }
+    else if (initString == L"bilinear")
+    {
+        const int kernelWidth = configp->Get(L"kernelWidth");
+        const int kernelHeight = configp->Get(L"kernelHeight");
+        InitBilinear(kernelWidth, kernelHeight);
+    }
     else if (initString == L"fromFile")
     {
         wstring initFromFilePath = configp->Get(L"initFromFilePath");
@@ -103,6 +109,53 @@ void LearnableParameter<ElemType>::InitRandom(const bool uniformInit,
     }
     if (initOnCPUOnly)
         Value().TransferToDeviceIfNotThere(m_deviceId, true);
+}
+
+// Initialize with bilinear interpolation coefficients (useful for deconvolution layer).
+template <class ElemType>
+void LearnableParameter<ElemType>::InitBilinear(int kernelWidth, int kernelHeight)
+{
+    if (kernelHeight != kernelWidth)
+        LogicError("Filter for bilinear interpolation must be square.");
+
+    // Transfer to CPU as GPU initialization is still not supported.
+    Value().TransferToDeviceIfNotThere(CPUDEVICE, true);
+
+    const auto& dims = GetSampleLayout().GetDims();
+    assert(dims.size() == 2);
+    const int kernelCount = dims[0];
+    const int kernelWeightCount = dims[1];
+    assert(kernelWeightCount % (kernelWidth * kernelHeight) == 0);
+    const int channels = kernelWeightCount / (kernelWidth * kernelHeight);
+    if (kernelCount != channels)
+        LogicError("Number of input and output channels of filter for bilinear interpolation must be equal.");
+
+    ElemType* data = Value().Data();
+    const int factor = (kernelWidth + 1) / 2;
+    const float center = (kernelWidth - 1) / 2.0f;
+    int count = 0;
+    // Filter dimensions are [W x H x C x C'] or ARRAY[1..C'] OF ARRAY[1..C] OF ARRAY[1..H] OF ARRAY[1..W], where:
+    // W = width, H = height, C = input channels, C' = output channels.
+    for (int kernel = 0; kernel < kernelCount; ++kernel)
+    {
+        for (int channel = 0; channel < channels; ++channel)
+        {
+            for (int h = 0; h < kernelHeight; ++h)
+            {
+                for (int w = 0; w < kernelWidth; ++w)
+                {
+                    float val = 0;
+                    if (kernel == channel)
+                    {
+                        val = (1 - fabs(w - center) / factor) * (1 - fabs(h - center) / factor);
+                    }
+                    data[count++] = val;
+                }
+            }
+        }
+    }
+
+    Value().TransferToDeviceIfNotThere(m_deviceId, true);
 }
 
 // initialize by reading a matrix from a text file

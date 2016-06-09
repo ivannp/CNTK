@@ -400,6 +400,13 @@ void ComputationNetwork::InitLearnableParameters(const ComputationNodeBasePtr& n
     learnableParameterNode->InitRandom(uniformInit, randomSeed + GetRandomSeedOffset(), initValueScale, initOnCPUOnly);
 }
 
+template <class ElemType>
+void ComputationNetwork::InitLearnableParametersWithBilinearFill(const ComputationNodeBasePtr& node, int kernelWidth, int kernelHeight)
+{
+    auto learnableParameterNode = dynamic_pointer_cast<LearnableParameter<ElemType>>(node);
+    learnableParameterNode->InitBilinear(kernelWidth, kernelHeight);
+}
+
 bool ComputationNetwork::IsTypicalCriterionNode(ComputationNodeBasePtr nodePtr)
 {
     // TODO: just use return!
@@ -1451,6 +1458,7 @@ void ComputationNetwork::SaveToDbnFile(ComputationNetworkPtr net, const std::wst
 }
 
 template void ComputationNetwork::InitLearnableParameters<float>(const ComputationNodeBasePtr& node, const bool uniformInit, const unsigned long randomSeed, const float initValueScale, bool initOnCPUOnly);
+template void ComputationNetwork::InitLearnableParametersWithBilinearFill<float>(const ComputationNodeBasePtr& node, int kernelWidth, int kernelHeight);
 template void ComputationNetwork::Read<float>(const wstring& fileName);
 template void ComputationNetwork::ReadPersistableParameters<float>(File& fstream, bool create);
 template void ComputationNetwork::PerformSVDecomposition<float>(const map<wstring, float>& SVDConfig, size_t alignedsize);
@@ -1461,6 +1469,7 @@ template void ComputationNetwork::SetSeqParam<float>(ComputationNetworkPtr net, 
 template void ComputationNetwork::SaveToDbnFile<float>(ComputationNetworkPtr net, const std::wstring& fileName) const;
 
 template void ComputationNetwork::InitLearnableParameters<double>(const ComputationNodeBasePtr& node, const bool uniformInit, const unsigned long randomSeed, const double initValueScale, bool initOnCPUOnly);
+template void ComputationNetwork::InitLearnableParametersWithBilinearFill<double>(const ComputationNodeBasePtr& node, int kernelWidth, int kernelHeight);
 template void ComputationNetwork::Read<double>(const wstring& fileName);
 template void ComputationNetwork::ReadPersistableParameters<double>(File& fstream, bool create);
 template void ComputationNetwork::PerformSVDecomposition<double>(const map<wstring, float>& SVDConfig, size_t alignedsize);
