@@ -1940,3 +1940,4 @@ template class BatchNormalizationNode<float>;
 template class BatchNormalizationNode<double>;
 
 }}}
+
