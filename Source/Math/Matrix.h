@@ -348,6 +348,9 @@ public:
     Matrix<ElemType>& InplaceLogSoftmax(const bool isColWise);
     Matrix<ElemType>& AssignLogSoftmaxOf(const Matrix<ElemType>& a, const bool isColWise);
 
+    Matrix<ElemType>& InplaceLogSoftmax(const SmallVector<size_t>& sampleDimensions, const int softmaxAxis);
+    Matrix<ElemType>& AssignLogSoftmaxOf(const Matrix<ElemType>& a, const SmallVector<size_t>& sampleDimensions, const int softmaxAxis);
+
     Matrix<ElemType>& InplaceHardmax(const bool isColWise);
     Matrix<ElemType>& AssignHardmaxOf(const Matrix<ElemType>& a, const bool isColWise);
 

@@ -1336,6 +1336,19 @@ GPUMatrix<ElemType>& GPUMatrix<ElemType>::AssignLogSoftmaxOf(const GPUMatrix<Ele
 }
 
 template <class ElemType>
+GPUMatrix<ElemType>& GPUMatrix<ElemType>::InplaceLogSoftmax(const SmallVector<size_t>& sampleDimensions, const int softmaxAxis)
+{
+    return *this;
+}
+
+template <class ElemType>
+GPUMatrix<ElemType>& GPUMatrix<ElemType>::AssignLogSoftmaxOf(
+    const GPUMatrix<ElemType>& a, const SmallVector<size_t>& sampleDimensions, const int softmaxAxis)
+{
+    return *this;
+}
+
+template <class ElemType>
 GPUMatrix<ElemType>& GPUMatrix<ElemType>::InplaceHardmax(const bool isColWise)
 {
     return *this;

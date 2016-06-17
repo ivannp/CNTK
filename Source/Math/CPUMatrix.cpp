@@ -2304,6 +2304,86 @@ CPUMatrix<ElemType>& CPUMatrix<ElemType>::AssignLogSoftmaxOf(const CPUMatrix<Ele
     return *this;
 }
 
+template <class ElemType>
+CPUMatrix<ElemType>& CPUMatrix<ElemType>::InplaceLogSoftmax(
+    const SmallVector<size_t>& sampleDimensions, const int softmaxAxis)
+{
+    return AssignLogSoftmaxOf(*this, sampleDimensions, softmaxAxis);
+}
+
+template <class ElemType>
+CPUMatrix<ElemType>& CPUMatrix<ElemType>::AssignLogSoftmaxOf(
+    const CPUMatrix<ElemType>& a, const SmallVector<size_t>& sampleDimensions, const int softmaxAxis)
+{
+    if (a.IsEmpty())
+        LogicError("AssignLogSoftmaxOf: Matrix a is empty.");
+
+    if (this != &a)
+        RequireSize(a.GetNumRows(), a.GetNumCols());
+
+    int innerLoop = 1;
+    for (int i = 0; i < softmaxAxis; ++i)
+        innerLoop *= static_cast<int>(sampleDimensions[i]);
+    int outerLoop = 1;
+    for (int i = softmaxAxis + 1; i < sampleDimensions.size(); ++i)
+        outerLoop *= static_cast<int>(sampleDimensions[i]);
+    outerLoop *= static_cast<int>(a.GetNumCols());
+
+    const int outerSize = static_cast<int>(innerLoop * sampleDimensions[softmaxAxis]);
+    const int softmaxDim = static_cast<int>(sampleDimensions[softmaxAxis]);
+
+    auto indexer = [outerSize, innerLoop](int outer, int channel, int inner) {
+        return outer * outerSize + channel * innerLoop + inner;
+    };
+
+    const ElemType* input = a.Data();
+    ElemType* output = Data();
+    std::vector<ElemType> maximum(innerLoop);
+    std::vector<ElemType> sum(innerLoop);
+    for (int outer = 0; outer < outerLoop; ++outer)
+    {
+        std::fill(maximum.begin(), maximum.end(), std::numeric_limits<ElemType>::lowest());
+        for (int channel = 0; channel < softmaxDim; ++channel)
+        {
+            for (int inner = 0; inner < innerLoop; ++inner)
+            {
+                const int index = indexer(outer, channel, inner);
+                const ElemType inputData = input[index];
+                if (inputData > maximum[inner])
+                {
+                    maximum[inner] = inputData;
+                }
+            }
+        }
+
+        std::fill(sum.begin(), sum.end(), ElemType(0));
+        for (int channel = 0; channel < softmaxDim; ++channel)
+        {
+            for (int inner = 0; inner < innerLoop; ++inner)
+            {
+                const int index = indexer(outer, channel, inner);
+                const ElemType inputData = input[index];
+                output[index] = inputData - maximum[inner];
+                sum[inner] += exp(output[index]);
+            }
+        }
+
+        for (int inner = 0; inner < innerLoop; ++inner)
+            sum[inner] = log(sum[inner]);
+
+        for (int channel = 0; channel < softmaxDim; ++channel)
+        {
+            for (int inner = 0; inner < innerLoop; ++inner)
+            {
+                const size_t index = indexer(outer, channel, inner);
+                output[index] -= sum[inner];
+            }
+        }
+    }
+
+    return *this;
+}
+
 //[this]=hardmax([this])
 //the max element is 1 else is 0
 template <class ElemType>

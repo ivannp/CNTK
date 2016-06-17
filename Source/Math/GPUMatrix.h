@@ -324,6 +324,9 @@ public:
 
     GPUMatrix<ElemType>& InplaceLogSoftmax(const bool isColWise);
     GPUMatrix<ElemType>& AssignLogSoftmaxOf(const GPUMatrix<ElemType>& a, const bool isColWise);
+    GPUMatrix<ElemType>& InplaceLogSoftmax(const SmallVector<size_t>& sampleDimensions, const int softmaxAxis);
+    GPUMatrix<ElemType>& AssignLogSoftmaxOf(
+        const GPUMatrix<ElemType>& a, const SmallVector<size_t>& sampleDimensions, const int softmaxAxis);
 
     GPUMatrix<ElemType>& InplaceHardmax(const bool isColWise);
     GPUMatrix<ElemType>& AssignHardmaxOf(const GPUMatrix<ElemType>& a, const bool isColWise);

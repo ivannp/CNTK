@@ -392,6 +392,31 @@ BOOST_FIXTURE_TEST_CASE(GPUMatrixKhatriRaoProduct, RandomSeedFixture)
     BOOST_CHECK(c.IsEqualTo(d, c_epsilonFloatE4));
 }
 
+BOOST_FIXTURE_TEST_CASE(GPUMatrixSoftmaxND, RandomSeedFixture)
+{
+    std::array<float, 8> in = {
+        0.89f, 0.31f, 0.32f, 0.59f,
+        0.85f, 0.74f, 0.69f, 0.41f};
+
+    GPUMatrix<float> x0(4, 2, c_deviceIdZero, in.data());
+    std::array<float, 8> softmax0 = {
+        0.64106741f, 0.35893259f, 0.4329071f, 0.5670929f,
+        0.5274723f, 0.4725277f, 0.56954622f, 0.43045378f};
+    GPUMatrix<float> softmax0_expected(4, 2, c_deviceIdZero, softmax0.data());
+    x0.InplaceLogSoftmax({2, 2}, 0);
+    x0.InplaceExp();
+    BOOST_CHECK(x0.IsEqualTo(softmax0_expected, c_epsilonFloatE4));
+
+    GPUMatrix<float> x1(4, 2, c_deviceIdZero, in.data());
+    std::array<float, 8> softmax1 = {
+        0.63876318f, 0.43045378f, 0.36123682f, 0.56954622f,
+        0.53991488f, 0.58175938f, 0.46008512f, 0.41824062f};
+    GPUMatrix<float> softmax1_expected(4, 2, c_deviceIdZero, softmax1.data());
+    x1.InplaceLogSoftmax({2, 2}, 1);
+    x1.InplaceExp();
+    BOOST_CHECK(x1.IsEqualTo(softmax1_expected, c_epsilonFloatE4));
+}
+
 BOOST_FIXTURE_TEST_CASE(GPUMatrixAddColumnReshapeProductOf, RandomSeedFixture)
 {
     // tests column-wise reshaped product. Used to compute KhatriRaoProduct Gradient

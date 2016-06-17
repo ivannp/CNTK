@@ -2560,6 +2560,44 @@ Matrix<ElemType>& Matrix<ElemType>::AssignLogSoftmaxOf(const Matrix<ElemType>& a
     return *this;
 }
 
+template <class ElemType>
+Matrix<ElemType>& Matrix<ElemType>::InplaceLogSoftmax(const SmallVector<size_t>& dimensions, const int softmaxAxis)
+{
+    DISPATCH_MATRIX_ON_FLAG(this,
+                            this,
+                            m_CPUMatrix->InplaceLogSoftmax(dimensions, softmaxAxis),
+                            m_GPUMatrix->InplaceLogSoftmax(dimensions, softmaxAxis),
+                            NOT_IMPLEMENTED,
+                            NOT_IMPLEMENTED);
+
+    return *this;
+}
+
+template <class ElemType>
+Matrix<ElemType>& Matrix<ElemType>::AssignLogSoftmaxOf(const Matrix<ElemType>& a, const SmallVector<size_t>& sampleDimensions, const int softmaxAxis)
+{
+    if (a.IsEmpty())
+        LogicError("AssignLogSoftmaxOf: Matrix a is empty.");
+    if (softmaxAxis >= sampleDimensions.size() || softmaxAxis < 0)
+        LogicError("Softmax axis index out of bounds.");
+    size_t sampleSize = sampleDimensions.size() > 0 ? 1 : 0;
+    for (size_t dim : sampleDimensions)
+        sampleSize *= dim;
+    if (a.GetNumRows() != sampleSize)
+        LogicError("Sample size incompatible with its dimensions.");
+    DecideAndMoveToRightDevice(a, *this);
+    SwitchToMatrixType(a.GetMatrixType(), a.GetFormat(), false);
+
+    DISPATCH_MATRIX_ON_FLAG(&a,
+                            this,
+                            m_CPUMatrix->AssignLogSoftmaxOf(*a.m_CPUMatrix, sampleDimensions, softmaxAxis),
+                            m_GPUMatrix->AssignLogSoftmaxOf(*a.m_GPUMatrix, sampleDimensions, softmaxAxis),
+                            NOT_IMPLEMENTED,
+                            NOT_IMPLEMENTED);
+
+    return *this;
+}
+
 //[this]=softmax([this]) element wise
 template <class ElemType>
 Matrix<ElemType>& Matrix<ElemType>::InplaceHardmax(const bool isColWise)

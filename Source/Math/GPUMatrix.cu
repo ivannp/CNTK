@@ -2098,6 +2098,47 @@ GPUMatrix<ElemType>& GPUMatrix<ElemType>::AssignLogSoftmaxOf(const GPUMatrix<Ele
     return *this;
 }
 
+static void GetLoopDimensions(const SmallVector<size_t>& sampleDimensions, const int softmaxAxis,
+                              int& outerLoop, int& innerLoop, int& softmaxLoop)
+{
+    softmaxLoop = static_cast<int>(sampleDimensions[softmaxAxis]);
+    innerLoop = 1;
+    for (int i = 0; i < softmaxAxis; ++i)
+        innerLoop *= static_cast<int>(sampleDimensions[i]);
+    outerLoop = 1;
+    for (int i = softmaxAxis + 1; i < sampleDimensions.size(); ++i)
+        outerLoop *= static_cast<int>(sampleDimensions[i]);
+}
+
+template <class ElemType>
+GPUMatrix<ElemType>& GPUMatrix<ElemType>::InplaceLogSoftmax(const SmallVector<size_t>& sampleDimensions, const int softmaxAxis)
+{
+    if (IsEmpty())
+        LogicError("InplaceLogSoftmax: Matrix is empty.");
+
+    return AssignLogSoftmaxOf(*this, sampleDimensions, softmaxAxis);
+}
+
+template <class ElemType>
+GPUMatrix<ElemType>& GPUMatrix<ElemType>::AssignLogSoftmaxOf(
+    const GPUMatrix<ElemType>& a, const SmallVector<size_t>& sampleDimensions, const int softmaxAxis)
+{
+    RequireSize(a.GetNumRows(), a.GetNumCols());
+    PrepareDevice();
+
+    int innerLoop, outerLoop, softmaxLoop;
+    GetLoopDimensions(sampleDimensions, softmaxAxis, outerLoop, innerLoop, softmaxLoop);
+    outerLoop *= static_cast<int>(m_numCols);
+
+    CUDA_LONG N = (CUDA_LONG)(outerLoop * innerLoop); // One kernel per softmax column.
+    int blocksPerGrid = (int) ceil(N * 1.0 / GridDim::maxThreadsPerBlock);
+    SyncGuard syncGuard;
+    _logSoftMaxND<<<blocksPerGrid, GridDim::maxThreadsPerBlock, 0, t_stream>>>(
+        a.Data(), Data(), (CUDA_LONG) outerLoop, (CUDA_LONG) innerLoop, (CUDA_LONG) softmaxLoop);
+
+    return *this;
+}
+
 template <class ElemType>
 GPUMatrix<ElemType>& GPUMatrix<ElemType>::InplaceHardmax(const bool isColWise)
 {

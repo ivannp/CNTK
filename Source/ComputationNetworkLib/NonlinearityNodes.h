@@ -263,8 +263,8 @@ class SoftmaxNode : public SoftmaxNodeBase<ElemType>
 
 public:
     DeclareConstructorFromConfigWithNumInputs(SoftmaxNode);
-    SoftmaxNode(DEVICEID_TYPE deviceId, const wstring& name)
-        : Base(deviceId, name)
+    SoftmaxNode(DEVICEID_TYPE deviceId, const wstring& name, const int axis = -1)
+        : Base(deviceId, name), m_axis(axis)
     {
     }
 
@@ -281,7 +281,15 @@ public:
 
     /*virtual*/ void ForwardPropV(Matrix<ElemType>& functionValues, const Matrix<ElemType>& inputFunctionValues) override
     {
-        functionValues.AssignLogSoftmaxOf(inputFunctionValues, true);
+        if (m_axis >= 0)
+        {
+            const SmallVector<size_t> sampleDimensions = GetSampleLayout().GetDims();
+            functionValues.AssignLogSoftmaxOf(inputFunctionValues, sampleDimensions, m_axis);
+        }
+        else
+        {
+            functionValues.AssignLogSoftmaxOf(inputFunctionValues, true);
+        }
         functionValues.InplaceExp();
     }
 
@@ -292,6 +300,7 @@ public:
         {
             auto node = dynamic_pointer_cast<SoftmaxNode<ElemType>>(nodeP);
             node->m_diff->SetValue(*m_diff);
+            node->m_axis = m_axis;
         }
     }
     // request matrices that are needed for gradient computation
@@ -308,8 +317,31 @@ public:
         ReleaseMatrixToPool(m_diff, matrixPool);
     }
 
+    void /*ComputationNodeBase::*/ Validate(bool isFinalValidationPass) override
+    {
+        Base::Validate(isFinalValidationPass);
+
+        const SmallVector<size_t> sampleDimensions = Input(0)->GetSampleLayout().GetDims();
+        if (m_axis < -1 || sampleDimensions.size() <= m_axis)
+            RuntimeError("Axis for calculating softmax is out of range.");
+    }
+
+    void Save(File& fstream) const override
+    {
+        Base::Save(fstream);
+        fstream << m_axis;
+    }
+
+    void Load(File& fstream, size_t modelVersion) override
+    {
+        Base::Load(fstream, modelVersion);
+        if (modelVersion >= CNTK_MODEL_VERSION_11)
+            fstream >> m_axis;
+    }
+
 private:
     shared_ptr<Matrix<ElemType>> m_diff;
+    int m_axis; // Axis along which softmax is calculated.
 };
 
 template class SoftmaxNode<float>;

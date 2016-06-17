@@ -218,6 +218,10 @@ public:
     CPUMatrix<ElemType>& InplaceLogSoftmax(const bool isColWise);
     CPUMatrix<ElemType>& AssignLogSoftmaxOf(const CPUMatrix<ElemType>& a, const bool isColWise);
 
+    CPUMatrix<ElemType>& InplaceLogSoftmax(const SmallVector<size_t>& sampleDimensions, const int softmaxAxis);
+    CPUMatrix<ElemType>& AssignLogSoftmaxOf(
+        const CPUMatrix<ElemType>& a, const SmallVector<size_t>& sampleDimensions, const int softmaxAxis);
+
     CPUMatrix<ElemType>& InplaceHardmax(const bool isColWise);
     CPUMatrix<ElemType>& AssignHardmaxOf(const CPUMatrix<ElemType>& a, const bool isColWise);
 

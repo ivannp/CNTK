@@ -431,6 +431,45 @@ BOOST_FIXTURE_TEST_CASE(CPUMatrixElementOperations, RandomSeedFixture)
     m_NegSine.SetValue(m_Trig);
     m_NegSine.AssignNegativeSineOf(m_Trig);
     BOOST_CHECK(m_NegSine.IsEqualTo(m_NegSine_expected, c_epsilonFloatE4));
+
+    DMatrix m0_2x2x2(4, 2);
+    m0_2x2x2(0, 0) = 0.89;
+    m0_2x2x2(1, 0) = 0.31;
+    m0_2x2x2(2, 0) = 0.32;
+    m0_2x2x2(3, 0) = 0.59;
+    m0_2x2x2(0, 1) = 0.85;
+    m0_2x2x2(1, 1) = 0.74;
+    m0_2x2x2(2, 1) = 0.69;
+    m0_2x2x2(3, 1) = 0.41;
+
+    DMatrix m1_2x2x2(4, 2);
+    m1_2x2x2.SetValue(m0_2x2x2);
+    m1_2x2x2.InplaceLogSoftmax({2, 2}, 1);
+    m1_2x2x2.InplaceExp();
+
+    DMatrix m_2x2x2_expected(4, 2);
+    m_2x2x2_expected(0, 0) = 0.63876318;
+    m_2x2x2_expected(1, 0) = 0.43045378;
+    m_2x2x2_expected(2, 0) = 0.36123682;
+    m_2x2x2_expected(3, 0) = 0.56954622;
+    m_2x2x2_expected(0, 1) = 0.53991488;
+    m_2x2x2_expected(1, 1) = 0.58175938;
+    m_2x2x2_expected(2, 1) = 0.46008512;
+    m_2x2x2_expected(3, 1) = 0.41824062;
+    BOOST_CHECK(m1_2x2x2.IsEqualTo(m_2x2x2_expected, c_epsilonFloatE4));
+
+    m1_2x2x2.SetValue(m0_2x2x2);
+    m1_2x2x2.InplaceLogSoftmax({2, 2}, 0);
+    m1_2x2x2.InplaceExp();
+    m_2x2x2_expected(0, 0) = 0.64106741;
+    m_2x2x2_expected(1, 0) = 0.35893259;
+    m_2x2x2_expected(2, 0) = 0.4329071;
+    m_2x2x2_expected(3, 0) = 0.5670929;
+    m_2x2x2_expected(0, 1) = 0.5274723;
+    m_2x2x2_expected(1, 1) = 0.4725277;
+    m_2x2x2_expected(2, 1) = 0.56954622;
+    m_2x2x2_expected(3, 1) = 0.43045378;
+    BOOST_CHECK(m1_2x2x2.IsEqualTo(m_2x2x2_expected, c_epsilonFloatE4));
 }
 
 BOOST_FIXTURE_TEST_CASE(CPUMatrixNorms, RandomSeedFixture)

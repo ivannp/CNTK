@@ -42,6 +42,11 @@
 
 #define IDX2C(i, j, ld) (((j) * (ld)) + (i)) // 0 based indexing
 
+#define IDX_NDSM(outersize, innersize, outerdim, softmaxdim, innerdim) \
+    outersize * outerdim + innersize * softmaxdim + innerdim
+
+#define IS_FLOAT(ElemType) (sizeof(ElemType) == sizeof(float))
+
 // CUDA atomicAdd() only exists for 'float'. This is the 'double' version.
 // TODO: This may need to be guarded by CUDA version; newer devices may support this.
 static __inline__ __device__ double atomicAdd(double* address, double val)
@@ -793,9 +798,9 @@ __global__ void _logSoftMaxColWise(
     for (CUDA_LONG i = 0; i < m_numRows; ++i)
     {
         ElemType tmp = a[IDX2C(i, col_id, m_numRows)] - maxV[threadIdx.x];
-        Sum[threadIdx.x] += (sizeof(ElemType) == sizeof(float) ? expf(tmp) : exp(tmp));
+        Sum[threadIdx.x] += (IS_FLOAT(ElemType) ? expf(tmp) : exp(tmp));
     }
-    Sum[threadIdx.x] = maxV[threadIdx.x] + (sizeof(ElemType) == sizeof(float) ? logf(Sum[threadIdx.x]) : log(Sum[threadIdx.x]));
+    Sum[threadIdx.x] = maxV[threadIdx.x] + (IS_FLOAT(ElemType) ? logf(Sum[threadIdx.x]) : log(Sum[threadIdx.x]));
     for (CUDA_LONG i = 0; i < m_numRows; ++i)
     {
         a[IDX2C(i, col_id, m_numRows)] -= Sum[threadIdx.x];
@@ -918,7 +923,7 @@ __global__ void _assignColumnwiseLogSoftmaxOf512Threads(
     {
         ElemType tmp = a[IDX2C(i, blockIdx.x, m_numRows)] - colMax[0];
         us[IDX2C(i, blockIdx.x, m_numRows)] = tmp;
-        partials[threadIdx.x] += (sizeof(ElemType) == sizeof(float)) ? expf(tmp) : exp(tmp);
+        partials[threadIdx.x] += (IS_FLOAT(ElemType)) ? expf(tmp) : exp(tmp);
     }
     __syncthreads();
 
@@ -968,7 +973,7 @@ __global__ void _assignColumnwiseLogSoftmaxOf512Threads(
     if (threadIdx.x == 0)
     {
         colSum[0] = partials[0] + partials[1] + partials[2] + partials[3];
-        colSum[0] = (sizeof(ElemType) == sizeof(float)) ? logf(colSum[0]) : log(colSum[0]);
+        colSum[0] = IS_FLOAT(ElemType) ? logf(colSum[0]) : log(colSum[0]);
     }
     __syncthreads();
 
@@ -1004,12 +1009,63 @@ __global__ void _logSoftMaxRowWise(
     for (CUDA_LONG j = 0; j < m_numCols; ++j)
     {
         ElemType tmp = a[IDX2C(row_id, j, m_numRows)] - maxV[threadIdx.x];
-        Sum[threadIdx.x] += sizeof(ElemType) == sizeof(float) ? expf(tmp) : exp(tmp);
+        Sum[threadIdx.x] += IS_FLOAT(ElemType) ? expf(tmp) : exp(tmp);
     }
-    Sum[threadIdx.x] = maxV[threadIdx.x] + (sizeof(ElemType) == sizeof(float) ? logf(Sum[threadIdx.x]) : log(Sum[threadIdx.x]));
+    Sum[threadIdx.x] = maxV[threadIdx.x] + (IS_FLOAT(ElemType) ? logf(Sum[threadIdx.x]) : log(Sum[threadIdx.x]));
     for (CUDA_LONG j = 0; j < m_numCols; ++j)
     {
         a[IDX2C(row_id, j, m_numRows)] -= Sum[threadIdx.x];
+    }
+}
+
+// Calculates log softmax along arbitrary axis.
+template <class ElemType>
+__global__ void _logSoftMaxND(
+    const ElemType* in,
+    ElemType* out,
+    const CUDA_LONG outerLoop,
+    const CUDA_LONG innerLoop,
+    const CUDA_LONG softmaxLoop)
+{
+    // batchSize = outerLoop * softmaxLoop * innerLoop
+    int col_id = (CUDA_LONG)(blockDim.x * blockIdx.x + threadIdx.x);
+    if (col_id >= outerLoop * innerLoop)
+        return;
+
+    CUDA_LONG outerSize = innerLoop * softmaxLoop;
+    CUDA_LONG innerSize = innerLoop;
+    CUDA_LONG softmaxSize = softmaxLoop;
+
+    CUDA_LONG outerDim = col_id / innerSize;
+    CUDA_LONG innerDim = col_id % innerSize;
+
+    __shared__ ElemType max_value[GridDim::maxThreadsPerBlock];
+    __shared__ ElemType sum[GridDim::maxThreadsPerBlock];
+    max_value[threadIdx.x] = in[IDX_NDSM(outerSize, innerSize, outerDim, 0, innerDim)];
+    sum[threadIdx.x] = 0;
+
+    for (CUDA_LONG softmaxDim = 0; softmaxDim < softmaxSize; ++softmaxDim)
+    {
+        CUDA_LONG idx = IDX_NDSM(outerSize, innerSize, outerDim, softmaxDim, innerDim);
+        if (in[idx] > max_value[threadIdx.x])
+        {
+            max_value[threadIdx.x] = in[idx];
+        }
+    }
+
+    for (CUDA_LONG softmaxDim = 0; softmaxDim < softmaxSize; ++softmaxDim)
+    {
+        CUDA_LONG idx = IDX_NDSM(outerSize, innerSize, outerDim, softmaxDim, innerDim);
+        out[idx] = in[idx] - max_value[threadIdx.x];
+        sum[threadIdx.x] += IS_FLOAT(ElemType) ? expf(out[idx]) : exp(out[idx]);
+    }
+
+    sum[threadIdx.x] = IS_FLOAT(ElemType) ? logf(sum[threadIdx.x]) : log(sum[threadIdx.x]);
+
+    for (CUDA_LONG softmaxDim = 0; softmaxDim < softmaxSize; ++softmaxDim)
+    {
+        CUDA_LONG idx = IDX_NDSM(outerSize, innerSize, outerDim, softmaxDim, innerDim);
+        out[idx] -= sum[threadIdx.x];
     }
 }
 
@@ -1187,7 +1243,7 @@ __global__ void _setToZeroIfAbsLessThan(
     CUDA_LONG id = blockDim.x * blockIdx.x + threadIdx.x;
     if (id >= N)
         return;
-    if (sizeof(ElemType) == sizeof(float))
+    if (IS_FLOAT(ElemType))
     {
         if (fabsf(a[id]) < threshold)
             a[id] = 0;
@@ -1211,7 +1267,7 @@ __global__ void _areEqual(
     if (id >= N)
         return;
 
-    if (sizeof(ElemType) == sizeof(float))
+    if (IS_FLOAT(ElemType))
     {
         if (fabsf(a[id] - b[id]) > threshold)
         {
@@ -1591,7 +1647,7 @@ __global__ void _vectorNorm1(
     {
         for (CUDA_LONG i = 0; i < n; ++i)
         {
-            if (sizeof(ElemType) == sizeof(float))
+            if (IS_FLOAT(ElemType))
             {
                 sum += fabsf(a[IDX2C(i, id, n)]);
             }
@@ -1605,7 +1661,7 @@ __global__ void _vectorNorm1(
     {
         for (CUDA_LONG j = 0; j < m; ++j)
         {
-            if (sizeof(ElemType) == sizeof(float))
+            if (IS_FLOAT(ElemType))
             {
                 sum += fabsf(a[IDX2C(id, j, n)]);
             }
@@ -1649,7 +1705,7 @@ __global__ void _vectorNorm2(
         }
     }
 
-    if (sizeof(ElemType) == sizeof(float))
+    if (IS_FLOAT(ElemType))
         c[id] = sqrtf(sum);
     else
         c[id] = sqrt(sum);
@@ -4109,7 +4165,7 @@ __global__ void _reductionSum21024Threads(
         sum[0] = partialSums[0] + partialSums[1] + partialSums[2] + partialSums[3];
         if (takeSqrt)
         {
-            if (sizeof(ElemType) == sizeof(float))
+            if (IS_FLOAT(ElemType))
                 sum[0] = sqrtf(sum[0]);
             else
                 sum[0] = sqrt(sum[0]);
@@ -4132,7 +4188,7 @@ __global__ void _reductionMatrixNormInf1024Threads(
     int loadPerThread = N / blockDim.x;
     for (int i = threadIdx.x * loadPerThread; i < (threadIdx.x == blockDim.x - 1 ? N : (threadIdx.x + 1) * loadPerThread); ++i)
     {
-        if (sizeof(ElemType) == sizeof(float))
+        if (IS_FLOAT(ElemType))
         {
             partialSums[threadIdx.x] = max(fabsf(data[i]), partialSums[threadIdx.x]);
         }
@@ -4397,7 +4453,7 @@ __global__ void _lrHelper512Threads(
     {
         ElemType fns1 = partialSums1[0] + partialSums1[1] + partialSums1[2] + partialSums1[3];
         ElemType fns2 = partialSums2[0] + partialSums2[1] + partialSums2[2] + partialSums2[3];
-        if (sizeof(ElemType) == sizeof(float))
+        if (IS_FLOAT(ElemType))
         {
             d_res[0] = max((ElemType) 0, d_res[0] / max((ElemType) 1.0e-10, sqrtf(fns1)) / max((ElemType) 1.0e-10, sqrtf(fns2)));
         }

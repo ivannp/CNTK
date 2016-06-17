@@ -521,6 +521,38 @@ void NDLNodeEvaluatorImpl<ElemType>::Evaluate(NDLNode<ElemType>* node, const wst
             nodePtr = builder.BatchNormalization(nullptr, nullptr, nullptr, nullptr, nullptr, spatial, normTimeConst, blendTimeConst, epsilon, useCntkEngine, imageLayoutKind, name);
         }
     }
+    else if (cnNodeType == OperationNameOf(SoftmaxNode))
+    {
+        if (parameter.size() != 1)
+            RuntimeError("%ls should have 1 fixed parameter [input].", cnNodeType.c_str());
+
+        // Only axis is handled here, we still need to process input afterwards.
+        nodeParamStart = 0;
+        nodeParamCount = static_cast<int>(parameter.size());
+
+        if (pass == ndlPassInitial)
+        {
+            const int softmaxAxis = node->GetOptionalParameter("softmaxAxis", "-1");
+            // Create softmax node without input (will be attached later).
+            nodePtr = builder.Softmax(nullptr, name, softmaxAxis);
+        }
+    }
+    else if (cnNodeType == OperationNameOf(CrossEntropyWithSoftmaxNode))
+    {
+        if (parameter.size() != 2)
+            RuntimeError("%ls should have 2 fixed parameters [input1, input2].", cnNodeType.c_str());
+
+        // Only axis is handled here, we still need to process inputs afterwards.
+        nodeParamStart = 0;
+        nodeParamCount = static_cast<int>(parameter.size());
+
+        if (pass == ndlPassInitial)
+        {
+            const int softmaxAxis = node->GetOptionalParameter("softmaxAxis", "-1");
+            // Create cross entropy node without inputs (will be attached later).
+            nodePtr = builder.CrossEntropyWithSoftmax(nullptr, nullptr, name, softmaxAxis);
+        }
+    }
     else
     {
 
