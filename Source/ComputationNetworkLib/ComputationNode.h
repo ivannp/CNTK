@@ -433,8 +433,8 @@ private:
     {
         if (HasMBLayout())
             LogicError("%ls: Minibatch data cannot be interpreted as a single 2D tensor.", NodeDescription().c_str());
-        else if (m_sampleLayout.GetRank() < 1 || m_sampleLayout.GetRank() > 2) // note: scalars are not stored as tensors of rank 0, but rather as 1-dim vectors. TODO: clean this up some day
-            LogicError("%ls: Sample [%s] is not a column vector or matrix (1D or 2D tensor).", NodeDescription().c_str(), string(m_sampleLayout).c_str());
+        //else if (m_sampleLayout.GetRank() < 1 || m_sampleLayout.GetRank() > 2) // note: scalars are not stored as tensors of rank 0, but rather as 1-dim vectors. TODO: clean this up some day
+            //LogicError("%ls: Sample [%s] is not a column vector or matrix (1D or 2D tensor).", NodeDescription().c_str(), string(m_sampleLayout).c_str());
     }
 public:
     size_t GetAsMatrixNumRows() const
