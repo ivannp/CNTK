@@ -299,8 +299,9 @@ public:
             return true;
         bool res =
             m_numTimeSteps == other.m_numTimeSteps &&
-            m_numParallelSequences == other.m_numParallelSequences &&
-            m_sequences == other.m_sequences;
+            m_numParallelSequences == other.m_numParallelSequences;// &&
+            //m_sequences == other.m_sequences;
+        //fprintf(stderr, "res: %d\n", (int)res);
         return res;
     }
     bool operator!=(const MBLayout &other) const
@@ -963,8 +964,10 @@ static inline std::pair<size_t, size_t> ColumnRangeWithMBLayoutFor(size_t numCol
             return std::pair<size_t, size_t>(0, numCols);
         if (fr.m_pMBLayout && pMBLayout && *fr.m_pMBLayout == *pMBLayout)
             LogicError("DataFor: FrameRange's dynamic axis is inconsistent with matrix. They are compatible though--are you missing a ReconcileDynamicAxis operation?");
-        else
+        else {
             LogicError("DataFor: FrameRange's dynamic axis is inconsistent with matrix.");
+        }
+            
     }
     // if FrameRange refers to whole minibatch (map mode)
     // or if we don't even have a layout
