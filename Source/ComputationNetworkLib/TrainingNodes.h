@@ -1666,6 +1666,13 @@ public:
                 fstream >> m_useCntkEngine;
             }
         }
+
+        // TODO
+        // For CuDNN4 -> CuDNN 5 transformation
+        // modify runInvStdDev = Input(4)->Value();
+        // m_epsilon 
+        // n/n-1*(1/(old*old) - epsilon)
+        // m_mbCount / (m_mbCount -1) * (1/(old*old) - m_epsilon.
     }
 
     void CopyTo(ComputationNodeBasePtr nodeP, const std::wstring& newName, const CopyNodeFlags flags) const override

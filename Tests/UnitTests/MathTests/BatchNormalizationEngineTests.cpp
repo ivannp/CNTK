@@ -171,7 +171,7 @@ BOOST_AUTO_TEST_CASE(BatchNormalizationForward)
             BOOST_REQUIRE_MESSAGE(CountNans(runMeanBuf) == crowScaleBias * 2, "runMean" << msgNotNan);
 
             BOOST_REQUIRE_MESSAGE(!runInvStdDev.HasNan("runInvStdDev"), "runInvStdDev" << msgNan);
-            // TODO BOOST_REQUIRE_MESSAGE(CheckEqual(runInvStdDev, runInvStdDevB, emsg, relErr, absErr), "runInvStdDev" << msg << ". " << emsg);
+            BOOST_REQUIRE_MESSAGE(CheckEqual(runInvStdDev, runInvStdDevB, emsg, relErr, absErr), "runInvStdDev" << msg << ". " << emsg);
             BOOST_REQUIRE_MESSAGE(CountNans(runInvStdDevBuf) == crowScaleBias * 2, "runInvStdDev" << msgNotNan);
 
             BOOST_REQUIRE_MESSAGE(!saveMean.HasNan("saveMean"), "saveMean" << msgNan);
@@ -186,7 +186,7 @@ BOOST_AUTO_TEST_CASE(BatchNormalizationForward)
 #ifndef _DEBUG
             float elapsedCntk = time1.Elapsed();
             float elapsedCudnn = time2.Elapsed();
-            // Check performance. Current version of cuDNN (v4 RC) is significanlty slower than CNTK implementation.
+            // Check performance. Current version of cuDNN (v4 RC) is significantly slower than CNTK implementation.
             // For optimal cases (vectorSize % 32 == 0 and batchSize % 32 == 0), CNTK implementation can be >5x faster than cuDNN.
             // Production version is about the same.
             if (crow >= 32 && ccol >= 32)

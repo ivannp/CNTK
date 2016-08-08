@@ -310,12 +310,18 @@ __global__ void kComputeBatchMeanAndInvStdDev(int vectorSize, int batchSize,
         // at this point, runMean[] has been updated
 
         // Store inv std dev and its running version.
+#if 1
+        ElemType u[U];
+
 #pragma unroll
         for (int k = 0; k < U; k++)
         {
-            m2[k] = Operations::RSqrt(static_cast<ElemType>(m2[k] / batchSize + epsilon));
+            //m2[k] = Operations::RSqrt(static_cast<ElemType>(m2[k] / batchSize + epsilon));
+            u[k] = Operations::RSqrt(static_cast<ElemType>(m2[k] / batchSize + epsilon));
+            m2[k] = m2[k] / (batchSize - 1);
         }
-        StoreValues<U>(m2, xInvStdDev + idxDstBase);
+#endif
+        StoreValues<U>(u, xInvStdDev + idxDstBase);
         // at this point, minibatch stddev has been saved into xInvStdDev[]
 
         if (expAvgFactor == 1)
@@ -362,6 +368,7 @@ __global__ void kComputeSpatialBatchMeanAndInvStdDev(int vectorSize, int spatial
     int n = 0;
     ElemType mean[U];
     ElemType m2[U];
+    ElemType xyz;
 #pragma unroll
     for (int k = 0; k < U; k++)
     {
@@ -473,8 +480,13 @@ __global__ void kComputeSpatialBatchMeanAndInvStdDev(int vectorSize, int spatial
 
         xMean[blockIdx.x] = mean[0];
         runMean[blockIdx.x] = (expAvgFactor == 1) ? mean[0] : (expAvgFactor * mean[0] + (1.0 - expAvgFactor) * runMean[blockIdx.x]);
-        m2[0] = Operations::RSqrt(static_cast<ElemType>(m2[0] / (batchSize * spatialSize) + epsilon));
-        xInvStdDev[blockIdx.x] = m2[0];
+#if 1
+        //m2[0] = Operations::RSqrt(static_cast<ElemType>(m2[0] / (batchSize * spatialSize) + epsilon));
+        xyz = Operations::RSqrt(static_cast<ElemType>(m2[0] / (batchSize * spatialSize) + epsilon));
+        m2[0] = m2[0] / (batchSize * spatialSize - 1);
+        xInvStdDev[blockIdx.x] = xyz;
+        //xInvStdDev[blockIdx.x] = m2[0];
+#endif
         runInvStdDev[blockIdx.x] = (expAvgFactor == 1) ? m2[0] : (expAvgFactor * m2[0] + (1.0 - expAvgFactor) * runInvStdDev[blockIdx.x]);
     }
 }
@@ -608,6 +620,7 @@ __global__ void kNormalizeBatchTraining(int vectorSize, int spatialSize, int bat
         for (int k = 0; k < U; k++)
         {
             val[k] = scale[k] * (val[k] - mean[k]) * invStdDev[k] + bias[k];
+            //val[k] = scale[k] * (val[k] - mean[k]) *  Operations::RSqrt(static_cast<ElemType>(invStdDev[k] * (batchSize - 1) / batchSize /* Excel: VAR -> VARP */  + 1e-5)) + bias[k];
         }
         StoreValues<U>(val, pdst);
     }
@@ -715,7 +728,7 @@ __global__ void kComputeScaleAndBiasGradients(int vectorSize, int batchSize, con
 #pragma unroll
         for (int k = 0; k < U; k++)
         {
-            ds[k] += pdy[k] * (curX[k] - mean[k]) * invStdDev[k];
+            ds[k] += pdy[k] * (curX[k] - mean[k]) * invStdDev[k]; // TODO stdDev[k] now!?
             db[k] += pdy[k];
         }
     }

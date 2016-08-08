@@ -3228,6 +3228,7 @@ void GPUMatrix<ElemType>::BatchNormalizationForward(const GPUMatrix<ElemType>& s
     }
     else // blendFactor == 1: use running mean/stddev only
     {
+        // TODO won't work BUGBUG REVIEW runInvStdDev has different values than saveInvStdDev
         Call<NormalizeBatchTraining, ElemType>(spatial ? spatialSize : vectorSize, vectorSize, spatialSize, batchSize, spatial,
                                                Data(), out.Data(),
                                                scale.Data(), bias.Data(),
