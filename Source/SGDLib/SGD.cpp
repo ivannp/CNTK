@@ -2002,7 +2002,7 @@ template <class ElemType>
     if (L2RegWeight > 0)
     {
         // multiply by actualMBSize so that it's invariant to minibatch size since learning rate is per sample
-        Matrix<ElemType>::ScaleAndAdd((ElemType)(L2RegWeight * actualMBSize), functionValues, gradientValues);
+        Matrix<ElemType>::ScaleAndAdd((ElemType)(L2RegWeight * actualMBSize), functionValues, (ElemType)actualMBSize, gradientValues);
 	}
 
     if (adpType == GradientsUpdateType::None)
