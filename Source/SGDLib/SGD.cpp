@@ -2002,20 +2002,13 @@ template <class ElemType>
     if (L2RegWeight > 0)
     {
         // multiply by actualMBSize so that it's invariant to minibatch size since learning rate is per sample
-
-        //Matrix<ElemType>::ScaleAndAdd((ElemType)learnRatePerSample * (ElemType)(L2RegWeight), functionValues, (ElemType)momentum, smoothedGradient);
-		Matrix<ElemType>::ScaleAndAdd(0.0001f * (ElemType)learnRatePerSample, functionValues, (ElemType)momentum, smoothedGradient);
-	}
-	else
-	{
-		Matrix<ElemType>::ScaleAndAdd(0.f, functionValues, (ElemType)momentum, smoothedGradient);
+        Matrix<ElemType>::ScaleAndAdd((ElemType)(L2RegWeight * actualMBSize), functionValues, gradientValues);
 	}
 
     if (adpType == GradientsUpdateType::None)
     {
-		ElemType disableMomentum = 1.f;
         smoothedGradient.NormalGrad(gradientValues, functionValues,
-                                    (ElemType)(learnRatePerSample), (ElemType)disableMomentum, useNesterovMomentum);
+                                    (ElemType)(learnRatePerSample), (ElemType) momentum, useNesterovMomentum);
     }
     else if (adpType == GradientsUpdateType::AdaGrad ||
              (adpType == GradientsUpdateType::RmsProp && gradientValues.GetMatrixType() == MatrixType::SPARSE) ||
@@ -2142,9 +2135,10 @@ void SGD<ElemType>::UpdateWeights(const ComputationNodeBasePtr& node,
 	else {
 #endif
 
-		UpdateWeightsS(this, dynamic_pointer_cast<ComputationNode<ElemType>>(node)->Value(), dynamic_pointer_cast<ComputationNode<ElemType>>(node)->Gradient(),
+		UpdateWeightsS(this, dynamic_pointer_cast<ComputationNode<ElemType>>(node)->Value(),
+			dynamic_pointer_cast<ComputationNode<ElemType>>(node)->Gradient(),
 			smoothedGradient, nodeDependentLearningRatePerSample, momentumPerSample,
-			actualMBSize, L2RegWeight * factor, L1RegWeight,
+			actualMBSize, L2RegWeight, L1RegWeight,
 			needAveMultiplier, m_useNesterovMomentum);
 		node->BumpEvalTimeStamp();
 
