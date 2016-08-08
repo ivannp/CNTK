@@ -2008,7 +2008,7 @@ template <class ElemType>
     if (adpType == GradientsUpdateType::None)
     {
         smoothedGradient.NormalGrad(gradientValues, functionValues,
-                                    (ElemType)(learnRatePerSample), (ElemType) momentum, useNesterovMomentum);
+                                    (ElemType)learnRatePerSample, (ElemType) momentum, useNesterovMomentum);
     }
     else if (adpType == GradientsUpdateType::AdaGrad ||
              (adpType == GradientsUpdateType::RmsProp && gradientValues.GetMatrixType() == MatrixType::SPARSE) ||
