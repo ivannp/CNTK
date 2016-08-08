@@ -3216,7 +3216,9 @@ void GPUMatrix<ElemType>::BatchNormalizationForward(const GPUMatrix<ElemType>& s
             // TODO: add a 'beta' parameter to ScaleAndAdd()
             Scale((ElemType)(1 - blendFactor), saveMean);
             ScaleAndAdd((ElemType)blendFactor, /*in*/ runMean, /*in/out*/ saveMean);
+            assert(!"TODO needs fixes blending");
             Scale((ElemType)(1 - blendFactor), saveInvStdDev);
+            // TODO Operations::RSqrt(static_cast<ElemType>(invStdDev[k] * (batchSize - 1) / batchSize + epsilon))
             ScaleAndAdd((ElemType)blendFactor, runInvStdDev, saveInvStdDev);
         }
         // normalize
@@ -3224,18 +3226,20 @@ void GPUMatrix<ElemType>::BatchNormalizationForward(const GPUMatrix<ElemType>& s
                                                Data(), out.Data(),                            // (in, out) data to be normalized -> normalized data
                                                scale.Data(), bias.Data(),                     // (in) scale/bias to denormalize with
                                                /*(in)*/saveMean.Data(), saveInvStdDev.Data(), // (in) actual mean/stddev to normalize with
+                                               false /* no convert */,
                                                GetStream());
     }
     else // blendFactor == 1: use running mean/stddev only
     {
         // TODO won't work BUGBUG REVIEW runInvStdDev has different values than saveInvStdDev
-
-        assert(!"TODO needs fixes");
+        //assert(!"TODO needs fixes");
 
         Call<NormalizeBatchTraining, ElemType>(spatial ? spatialSize : vectorSize, vectorSize, spatialSize, batchSize, spatial,
                                                Data(), out.Data(),
                                                scale.Data(), bias.Data(),
-                                               runMean.Data(), runInvStdDev.Data(), GetStream());
+                                               runMean.Data(), runInvStdDev.Data(),
+                                               true /* convert */,
+                                               GetStream());
         // CNTK engine returns saveMean and saveInvStdDev empty, but cnDNN engine does not.
     }
 }
