@@ -356,6 +356,8 @@ BOOST_AUTO_TEST_CASE(BatchNormalizationBackward)
             CudaTimer time1;
             time1.Start();
             engCntk->Backward(x, dy, dx, scale, saveMean, saveInvStdDev, dScale, dBias);
+            //void BatchNormEngine<ElemType>::Backward(const Mat& in, const Mat& srcGrad, Mat& grad, const Mat& scale, 
+            //                             const Mat& saveMean, const Mat& saveInvStdDev, Mat& scaleGrad, Mat& biasGrad)
             time1.Stop();
 
             CudaTimer time2;
