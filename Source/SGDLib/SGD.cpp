@@ -2003,7 +2003,7 @@ template <class ElemType>
     {
         // multiply by actualMBSize so that it's invariant to minibatch size since learning rate is per sample
 
-        Matrix<ElemType>::ScaleAndAdd((ElemType)learnRatePerSample * (ElemType)(L2RegWeight), functionValues, gradientValues);
+        Matrix<ElemType>::ScaleAndAdd((ElemType)L2RegWeight, functionValues, gradientValues);
 		//Matrix<ElemType>::ScaleAndAdd(0.0001f * (ElemType)learnRatePerSample, functionValues, (ElemType)momentum, smoothedGradient);
 	}
 	else
