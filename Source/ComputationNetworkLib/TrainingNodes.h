@@ -151,7 +151,7 @@ public:
 #endif
 
             auto gradient = Input(1)->GradientFor(fr);
-            Matrix<ElemType>::AddScaledDifference(Gradient(), *m_softmaxOfRight, Input(0)->ValueFor(fr), gradient);
+            Matrix<ElemType>::AddScaledDifference(1.f / 128/*Gradient()*/, *m_softmaxOfRight, Input(0)->ValueFor(fr), gradient);
 #if DUMPOUTPUT
             Input(1)->GradientFor(fr).Print("CrossEntropyWithSoftmaxNode Partial-Right");
 #endif

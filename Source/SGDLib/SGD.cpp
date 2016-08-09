@@ -1066,7 +1066,7 @@ size_t SGD<ElemType>::TrainOneEpoch(ComputationNetworkPtr net,
                         LogicError("%ls %ls operation has NaNs in smoothedGradient.", node->NodeName().c_str(), node->OperationName().c_str());
 #endif
                     // BUGBUG (Issue #95): Access to net MBLayout can no longer be done if we have multiple input layouts
-                    UpdateWeights(node, smoothedGradient, learnRatePerSample,
+                    UpdateWeights(node, smoothedGradient, m_learningRatesParam[epochNumber]/*learnRatePerSample*/,
                                   GetMomentumPerSample(epochNumber /*BUGBUG workaround:*/, net->GetMBLayoutPtrOfNetwork()->GetNumParallelSequences()), numSamplesInMinibatch,
                                   m_L2RegWeight, m_L1RegWeight,
                                   m_needAveMultiplier, m_useNesterovMomentum);
@@ -1894,7 +1894,7 @@ template <class ElemType>
     if (L2RegWeight > 0)
     {
         // multiply by actualMBSize so that it's invariant to minibatch size since learning rate is per sample
-        Matrix<ElemType>::ScaleAndAdd((ElemType)(L2RegWeight * actualMBSize), functionValues, gradientValues);
+        Matrix<ElemType>::ScaleAndAdd((ElemType)L2RegWeight, functionValues, gradientValues);
     }
 
     if (adpType == GradientsUpdateType::None)
