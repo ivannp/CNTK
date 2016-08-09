@@ -3216,7 +3216,7 @@ void GPUMatrix<ElemType>::BatchNormalizationForward(const GPUMatrix<ElemType>& s
             // TODO: add a 'beta' parameter to ScaleAndAdd()
             Scale((ElemType)(1 - blendFactor), saveMean);
             ScaleAndAdd((ElemType)blendFactor, /*in*/ runMean, /*in/out*/ saveMean);
-            assert(!"TODO needs fixes blending");
+            RuntimeError("TODO needs fixes blending %f.", blendFactor);
             Scale((ElemType)(1 - blendFactor), saveInvStdDev);
             // TODO Operations::RSqrt(static_cast<ElemType>(invStdDev[k] * (batchSize - 1) / batchSize + epsilon))
             ScaleAndAdd((ElemType)blendFactor, runInvStdDev, saveInvStdDev);
