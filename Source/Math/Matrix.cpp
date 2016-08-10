@@ -1440,11 +1440,11 @@ void Matrix<ElemType>::NormalGrad(Matrix<ElemType>& gradients,
     {
         DISPATCH_MATRIX_ON_FLAG(&gradients, nullptr,
             { 
-                ScaleAndAdd((1 - momentum) * learnRatePerSample, gradients, momentum, *this);
+                ScaleAndAdd(learnRatePerSample, gradients, *this);
                 functionValues -= *this;
             },
             { 
-                ScaleAndAdd((1 - momentum) * learnRatePerSample, gradients, momentum, *this);
+                ScaleAndAdd(learnRatePerSample, gradients, *this);
                 functionValues -= *this;
             },
             { 
@@ -4560,8 +4560,8 @@ template <class ElemType>
         Scale(alpha, a, c);
     else
     {
-        ScaleAndAdd(alpha / beta, a, c); // c1=alpha/beta * a + c
-        Scale(beta, c);                  // c/beta * beta
+		Scale(beta, c);                  // c/beta * beta
+        ScaleAndAdd(alpha/*alpha / beta*/, a, c); // c1=alpha/beta * a + c
     }
 }
 
