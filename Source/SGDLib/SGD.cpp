@@ -1894,12 +1894,9 @@ template <class ElemType>
     if (L2RegWeight > 0)
     {
         // multiply by actualMBSize so that it's invariant to minibatch size since learning rate is per sample
-        Matrix<ElemType>::ScaleAndAdd(0.0001f * (ElemType)learnRatePerSample, functionValues,
+        Matrix<ElemType>::ScaleAndAdd((ElemType)L2RegWeight * (ElemType)learnRatePerSample, functionValues,
 			(ElemType)momentum, smoothedGradient);
     }
-	else {
-		Matrix<ElemType>::ScaleAndAdd(0.f, functionValues, (ElemType)momentum, smoothedGradient);
-	}
 
     if (adpType == GradientsUpdateType::None)
     {
@@ -1965,15 +1962,9 @@ void SGD<ElemType>::UpdateWeights(const ComputationNodeBasePtr& node,
         LogicError("UpdateWeights() called for a learnable ComputationNode which has m_learningRateMultiplier == 0!");
 
     double nodeDependentLearningRatePerSample = learnRatePerSample * node->GetLearningRateMultiplier();
-	double factor = 1.0;
-	if (node->GetName().back() == L'b' || node->GetName().back() == L'c') {
-		if (node->GetName() != L"OutputNodes.b") {
-			factor = 0;
-		}
-	}
     UpdateWeightsS(this, dynamic_pointer_cast<ComputationNode<ElemType>>(node)->Value(), dynamic_pointer_cast<ComputationNode<ElemType>>(node)->Gradient(),
                    smoothedGradient, nodeDependentLearningRatePerSample, momentumPerSample,
-                   actualMBSize, L2RegWeight * factor, L1RegWeight,
+                   actualMBSize, L2RegWeight, L1RegWeight,
                    needAveMultiplier, m_useNesterovMomentum);
     node->BumpEvalTimeStamp();
 }
