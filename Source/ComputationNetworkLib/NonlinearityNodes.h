@@ -322,7 +322,7 @@ public:
         Base::Validate(isFinalValidationPass);
 
         const SmallVector<size_t> sampleDimensions = Input(0)->GetSampleLayout().GetDims();
-        if (m_axis < -1 || sampleDimensions.size() <= m_axis)
+        if (m_axis < -1 || static_cast<int>(sampleDimensions.size()) <= m_axis)
             RuntimeError("Axis for calculating softmax is out of range.");
     }
 
