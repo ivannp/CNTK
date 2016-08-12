@@ -1667,6 +1667,8 @@ public:
             }
         }
 
+        m_doPrint = true;
+
         // TODO
         // For CuDNN4 -> CuDNN 5 transformation
         // modify runInvStdDev = Input(4)->Value();
@@ -1711,8 +1713,10 @@ public:
             // The mean used in Forward() are either saveMean or runMean.
             // This is decided by the engine, which communicates back the decision by returning
             // an empty saveMean in case runMean should be used. Likewise for stddev.
+            if (m_saveInvStdDev->IsEmpty())
+                RuntimeError("TODO convert");
             let& actualMean      = !m_saveMean->IsEmpty()      ? *m_saveMean      : runMean;      // empty if only the running mean is used
-            let& actualInvStdDev = !m_saveInvStdDev->IsEmpty() ? *m_saveInvStdDev : runInvStdDev;
+            let& actualInvStdDev = !m_saveInvStdDev->IsEmpty() ? *m_saveInvStdDev : runInvStdDev; // TODO saveInvStdDev <-> runInvStdDev not the same
             m_dScale->Resize(scale);
             m_dBias->Resize(bias);
             // Compute all derivatives in one step. Save derivatives with respect to scale and bias in temp matrices.
@@ -1772,7 +1776,7 @@ public:
             double numSamples = (double)GetMBLayout()->GetActualNumSamples();
             if (m_normTimeConst > 0)
             {
-                // Convert to per-minibatch factor. Treat positivie infinity as if running mean/var parameters are "frozen"
+                // Convert to per-minibatch factor. Treat positive infinity as if running mean/var parameters are "frozen"
                 // that is, do not require updates.
                 expAvgFactor = isfinite(m_normTimeConst)
                                ? (1.0 - exp(-numSamples / m_normTimeConst))
@@ -1810,6 +1814,14 @@ public:
         InferMBLayoutFromInputsForStandardCase(isFinalValidationPass);
 
         SetDims(Input(0));
+
+        if (m_doPrint)
+        {
+            const Matrix<ElemType>& runInvStdDev = Input(4)->Value();
+            fprintf(stderr, "--- %ls runInvStdDev after loading\n", NodeName().c_str());
+            runInvStdDev.Print();
+            m_doPrint = false;
+        }
 
         if (isFinalValidationPass)
         {
@@ -1947,6 +1959,8 @@ private:
     shared_ptr<Matrix<ElemType>> m_dBias;
 
     std::unique_ptr<BatchNormEngine<ElemType>> m_bnEng;
+
+    bool m_doPrint = false;
 };
 
 template class BatchNormalizationNode<float>;
