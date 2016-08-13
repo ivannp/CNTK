@@ -137,11 +137,11 @@ void TestReader(const ConfigParameters& configBase)
 
             if (labels.GetNumRows() == 0)
             {
-                fprintf(stderr, "%4d: features dim: %lu x %lu - [%.8g, %.8g, ...]\n", i++, features.GetNumRows(), features.GetNumCols(), features(0, 0), features(0, 1));
+                fprintf(stderr, "%4d: features dim: %zu x %zu - [%.8g, %.8g, ...]\n", i++, features.GetNumRows(), features.GetNumCols(), features(0, 0), features(0, 1));
             }
             else
             {
-                fprintf(stderr, "%4d: features dim: %lu x %lu - [%.8g, %.8g, ...] label dim: %lu x %lu - [%d, %d, ...]\n", i++, features.GetNumRows(), features.GetNumCols(), features(0, 0), features(0, 1), labels.GetNumRows(), labels.GetNumCols(), (int) labels(0, 0), (int) labels(0, 1));
+                fprintf(stderr, "%4d: features dim: %zu x %zu - [%.8g, %.8g, ...] label dim: %zu x %zu - [%d, %d, ...]\n", i++, features.GetNumRows(), features.GetNumCols(), features(0, 0), features(0, 1), labels.GetNumRows(), labels.GetNumCols(), (int) labels(0, 0), (int) labels(0, 1));
             }
         }
     }

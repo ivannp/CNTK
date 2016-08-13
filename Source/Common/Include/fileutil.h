@@ -703,8 +703,6 @@ class auto_file_ptr
             bool readMode = false;
 
 #ifdef _WIN32
-            if ((f->_flag&_IOREAD) == _IOREAD)
-                readMode = true;
 #else
             int mode = fcntl(fileno(f), F_GETFL);
             if ((mode & O_ACCMODE) == O_RDONLY)

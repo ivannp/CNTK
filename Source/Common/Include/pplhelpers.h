@@ -10,6 +10,7 @@
 #ifndef __unix__
 #include <ppl.h>
 #endif
+
 namespace msra { namespace parallel {
 
 // ===========================================================================
@@ -95,7 +96,9 @@ void foreach_index_block(size_t n, size_t targetstep, size_t targetalignment, co
     // execute it!
     parallel_for(0, n, nfwd, [&](size_t j0)
                  {
-                     size_t j1 = min(j0 + nfwd, n);
+                     
+                     size_t fwd = j0 + nfwd;
+                     size_t j1 = (fwd < n) ? fwd : n;
                      body(j0, j1);
                  });
 }

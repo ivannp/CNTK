@@ -45,9 +45,9 @@ static inline int _wunlink(const wchar_t *p)
 template <typename ElementType>
 inline void SaveAndReloadModel(CNTK::FunctionPtr& functionPtr, const std::vector<CNTK::Variable*>& variables, const CNTK::DeviceDescriptor& device)
 {
-    static std::wstring s_tempModelPath = L"feedForward.net";
+    static std::wstring tempModelPath = L"feedForward.net";
 
-    if ((_wunlink(s_tempModelPath.c_str()) != 0) && (errno != ENOENT))
+    if ((_wunlink(tempModelPath.c_str()) != 0) && (errno != ENOENT))
         std::runtime_error("Error deleting temp model file 'feedForward.net'");
 
     std::unordered_map<std::wstring, CNTK::Variable*> inputVarNames;
@@ -60,10 +60,10 @@ inline void SaveAndReloadModel(CNTK::FunctionPtr& functionPtr, const std::vector
             std::runtime_error("SaveAndReloadModel: Multiple variables having same name cannot be restored after save and reload");
     }
 
-    CNTK::SaveAsLegacyModel<ElementType>(functionPtr, s_tempModelPath);
-    functionPtr = CNTK::LoadLegacyModel<ElementType>(s_tempModelPath, device);
+    CNTK::SaveAsLegacyModel<ElementType>(functionPtr, tempModelPath);
+    functionPtr = CNTK::LoadLegacyModel<ElementType>(tempModelPath, device);
 
-    if (_wunlink(s_tempModelPath.c_str()) != 0)
+    if (_wunlink(tempModelPath.c_str()) != 0)
          std::runtime_error("Error deleting temp model file 'feedForward.net'");
 
     auto inputs = functionPtr->Inputs();

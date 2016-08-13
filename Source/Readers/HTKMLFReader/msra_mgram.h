@@ -387,31 +387,31 @@ class mgram_map
         {
             if (id < 0)
                 return nindex;
-            index_t i;
+            index_t ii;
             if (level1nonsparse)
-                i = (index_t) id;
+                ii = (index_t) id;
             else // sparse: use a look-up table
             {
                 if ((size_t) id >= level1lookup.size())
                     return nindex;
-                i = level1lookup[id];
+                ii = level1lookup[id];
             }
-            assert(i == nindex || ids[1][i] == id);
-            return i;
+            assert(ii == nindex || ids[1][ii] == id);
+            return ii;
         }
         index_t beg = firsts[m][i];
         index_t end = firsts[m][i + 1];
         const int24_vector &ids_m1 = ids[m + 1];
         while (beg < end)
         {
-            index_t i = (beg + end) / 2;
-            int v = ids_m1[i];
+            index_t ii = (beg + end) / 2;
+            int v = ids_m1[ii];
             if (id == v)
-                return i; // found it
+                return ii; // found it
             else if (id < v)
-                end = i; // id is left of i
+                end = ii; // id is left of i
             else
-                beg = i + 1; // id is right of i
+                beg = ii + 1; // id is right of i
         }
         return nindex; // not found
     }

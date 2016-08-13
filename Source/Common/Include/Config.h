@@ -401,8 +401,8 @@ public:
             // found another opening brace, push it on the stack
             else
             {
-                const auto braceFound = openBraces.find(brace);  // index of brace
-                braceStack.push_back(closingBraces[braceFound]); // closing symbol for current
+                const auto bf = openBraces.find(brace);  // index of brace
+                braceStack.push_back(closingBraces[bf]); // closing symbol for current
             }
         }
         // hit end before everything was closed: error
@@ -558,13 +558,13 @@ public:
                 // now look for contained braces before the next break
                 if (tokenEnd != npos)
                 {
-                    const auto braceEndFound = FindBraces(stringParse, tokenEnd);
+                    const auto bf = FindBraces(stringParse, tokenEnd);
 
                     // found an embedded brace, extend token to the end of the braces
-                    if (braceEndFound != npos)
+                    if (bf != npos)
                     {
                         // token includes the closing brace
-                        tokenEnd = braceEndFound + 1;
+                        tokenEnd = bf + 1;
                     }
                 }
 

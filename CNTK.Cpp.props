@@ -99,8 +99,8 @@
     <OpenCvWorld Condition="$(ReleaseBuild)">opencv_world$(OpenCvVersion)</OpenCvWorld>
     <OpenCvWorld Condition="$(DebugBuild)">opencv_world$(OpenCvVersion)d</OpenCvWorld>
     <OpenCvLib>$(OpenCvWorld).lib</OpenCvLib>
-    <OpenCvLibPath>$(OpenCvPath)\x64\vc12\lib</OpenCvLibPath>
-    <OpenCvBinPath>$(OpenCvPath)\x64\vc12\bin</OpenCvBinPath>
+    <OpenCvLibPath>$(OpenCvPath)\x64\vc14\lib</OpenCvLibPath>
+    <OpenCvBinPath>$(OpenCvPath)\x64\vc14\bin</OpenCvBinPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(CudaVersion)' == '7.5'">
@@ -125,7 +125,7 @@
 
   <PropertyGroup Condition="'$(ConfigurationType)' == 'StaticLibrary'">
     <UseDebugLibraries>$(DebugBuild)</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>$(ReleaseBuild)</WholeProgramOptimization>
     <LinkIncremental>$(DebugBuild)</LinkIncremental>
