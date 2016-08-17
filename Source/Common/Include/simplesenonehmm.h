@@ -232,11 +232,11 @@ public:
             {
                 const char* senonename = toks[s + 2];
                 key = senonename; // (reuse existing memory)
-                auto iter = statemap.find(key);
-                if (iter == statemap.end())
+                auto it = statemap.find(key);
+                if (it == statemap.end())
                     RuntimeError("simplesenonehmm: unrecognized senone name in line: %s", lines[i]);
-                hmm.senoneids[s] = (unsigned short) iter->second;
-                if (hmm.getsenoneid(s) != iter->second)
+                hmm.senoneids[s] = (unsigned short) it->second;
+                if (hmm.getsenoneid(s) != it->second)
                     RuntimeError("simplesenonehmm: not enough bits to store senone index in line: %s", lines[i]);
                 // inverse lookup
                 if (senoneid2transPindex[hmm.senoneids[s]] == -2) // no value yet

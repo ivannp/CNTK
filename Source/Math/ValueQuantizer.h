@@ -65,7 +65,7 @@ public:
 
 public:
     cudasharedcode ValueQuantizer(size_t ldNbits, ElemType lower, ElemType upper)
-        : ldNbits(ldNbits), Nbits(1 << ldNbits), quantimin(lower), quantimax(upper)
+        : ldNbits(ldNbits), Nbits(1LLU << ldNbits), quantimin(lower), quantimax(upper)
     {
         rangeend = ((QWordVal) 1) << Nbits;
 

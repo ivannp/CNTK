@@ -127,11 +127,11 @@ void QuantizedMatrix<ElemType>::Print(const char* matrixName, size_t rowStart, s
     }
 
     if (matrixName != nullptr)
-        fprintf(stderr, "\n###### %s (%lu, %lu) ######\n", matrixName, GetNumRows(), GetNumCols());
+        fprintf(stderr, "\n###### %s (%zu, %zu) ######\n", matrixName, GetNumRows(), GetNumCols());
     else
-        fprintf(stderr, "\n###### Unnamed Matrix (%lu, %lu) ######\n", GetNumRows(), GetNumCols());
+        fprintf(stderr, "\n###### Unnamed Matrix (%zu, %zu) ######\n", GetNumRows(), GetNumCols());
 
-    fprintf(stderr, "\n------ Print Range (%lu:%lu, %lu:%lu) ------\n", rowStart, rowEnd, colStart, colEnd);
+    fprintf(stderr, "\n------ Print Range (%zu:%zu, %zu:%zu) ------\n", rowStart, rowEnd, colStart, colEnd);
 
     for (size_t j = colStart; j <= colEnd; j++)
     {

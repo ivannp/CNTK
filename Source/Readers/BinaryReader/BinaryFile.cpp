@@ -109,7 +109,7 @@ void BinaryFile::SetFilePositionMax(size_t filePositionMax)
     if (m_filePositionMax > m_mappedSize)
     {
         char message[128];
-        sprintf_s(message, "Setting max position larger than mapped file size: %ld > %ld", m_filePositionMax, m_mappedSize);
+        sprintf_s(message, "Setting max position larger than mapped file size: %zd > %zd", m_filePositionMax, m_mappedSize);
         RuntimeError(message);
     }
 }
@@ -499,7 +499,7 @@ Section* Section::ReadSection(size_t index, MappingType mapping, size_t sizeElem
     if (!section->ValidateHeader())
     {
         char message[256];
-        sprintf_s(message, "Invalid header in file %ls, in header %s\n", m_file->GetName().c_str(), section->GetName().c_str());
+        sprintf_s(message, "Invalid header in file %ls, in header %ls\n", m_file->GetName().c_str(), section->GetName().c_str());
         RuntimeError(message);
     }
 

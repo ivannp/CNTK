@@ -67,7 +67,7 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <AdditionalIncludeDirectories>$(BOOST_INCLUDE_PATH);$(SolutionDir)Source\CNTK\BrainScript;$(SolutionDir)Source\Common\Include</AdditionalIncludeDirectories>
-      <DisableSpecificWarnings>4819</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4819;4458;4505</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(BOOST_LIB_PATH);$(OutDir)..;</AdditionalLibraryDirectories>

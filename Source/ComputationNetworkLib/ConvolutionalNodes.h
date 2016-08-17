@@ -760,13 +760,13 @@ public:
             auto inputSampleLayout = GetInputSampleLayout(0);
 
             char str[4096];
-            sprintf(str, "Input[Width:%lu, Height:%lu, Channels:%lu]  \n", inputSampleLayout[1], inputSampleLayout[2], inputSampleLayout[0]);
+            sprintf(str, "Input[Width:%zu, Height:%zu, Channels:%zu]  \n", inputSampleLayout[1], inputSampleLayout[2], inputSampleLayout[0]);
             fstream << string(str);
-            sprintf(str, "PoolingWindow[Width:%lu, Height:%lu]  SubSampling[Horizontal:%lu, Vertical:%lu]\n", m_windowWidth, m_windowHeight, m_horizontalSubsample, m_verticalSubsample);
+            sprintf(str, "PoolingWindow[Width:%zu, Height:%zu]  SubSampling[Horizontal:%zu, Vertical:%zu]\n", m_windowWidth, m_windowHeight, m_horizontalSubsample, m_verticalSubsample);
             fstream << string(str);
-            sprintf(str, "Output[Width:%lu, Height:%lu, Channels:%lu]  \n", m_sampleLayout[1], m_sampleLayout[2], m_sampleLayout[0]);
+            sprintf(str, "Output[Width:%zu, Height:%zu, Channels:%zu]  \n", m_sampleLayout[1], m_sampleLayout[2], m_sampleLayout[0]);
             fstream << string(str);
-            sprintf(str, "TotalSizePerSample[Input:%lu, Output:%lu]  \n", m_inputSizePerSample, m_outputSizePerSample);
+            sprintf(str, "TotalSizePerSample[Input:%zu, Output:%zu]  \n", m_inputSizePerSample, m_outputSizePerSample);
             fstream << string(str);
         }
     }

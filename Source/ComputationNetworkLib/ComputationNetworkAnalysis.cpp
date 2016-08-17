@@ -149,8 +149,8 @@ void ComputationNetwork::FormRecurrentLoops(const ComputationNodeBasePtr& rootNo
         else
 #endif
         {
-            for (const auto& rootNode : m_allRoots)
-                GatherLoopNodesR(rootNode, visited, recurrentNodes, noRecurrentNodes);
+            for (const auto& rn : m_allRoots)
+                GatherLoopNodesR(rn, visited, recurrentNodes, noRecurrentNodes);
         }
 
         auto reorderedNodes = nodes;
@@ -215,9 +215,9 @@ void ComputationNetwork::DetermineSCCs(const ComputationNodeBasePtr& rootNode)
     }
 #endif
     // traverse all root nodes (as if they were all children of a master root)
-    for (auto& rootNode : m_allRoots)
-        if (!rootNode->m_visited)
-            DetermineSCCsR(rootNode, sccStack, index, loopId);
+    for (auto& rn : m_allRoots)
+        if (!rn->m_visited)
+            DetermineSCCsR(rn, sccStack, index, loopId);
 }
 
 // (recursive part of DetermineSCCs())

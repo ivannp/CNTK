@@ -703,6 +703,7 @@ class auto_file_ptr
             bool readMode = false;
 
 #ifdef _WIN32
+            // TODO This won't compile on VS2015. Best to simply remove it?
             if ((f->_flag&_IOREAD) == _IOREAD)
                 readMode = true;
 #else

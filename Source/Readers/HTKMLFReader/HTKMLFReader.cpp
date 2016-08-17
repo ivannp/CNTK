@@ -186,7 +186,7 @@ void HTKMLFReader<ElemType>::PrepareForTrainingOrTesting(const ConfigRecordType&
         }
 
         m_featureNameToIdMap[featureNames[i]] = iFeat;
-        scriptpaths.push_back(thisFeature(L"scpFile"));
+        scriptpaths.emplace_back(thisFeature(L"scpFile"));
         RootPathInScripts.push_back(thisFeature(L"prefixPathInSCP", L""));
         m_featureNameToDimMap[featureNames[i]] = m_featDims[i];
 
@@ -224,7 +224,7 @@ void HTKMLFReader<ElemType>::PrepareForTrainingOrTesting(const ConfigRecordType&
         mlfpaths.clear();
         if (thisLabel.ExistsCurrent(L"mlfFile"))
         {
-            mlfpaths.push_back(thisLabel(L"mlfFile"));
+            mlfpaths.emplace_back(thisLabel(L"mlfFile"));
         }
         else
         {
@@ -297,7 +297,7 @@ void HTKMLFReader<ElemType>::PrepareForTrainingOrTesting(const ConfigRecordType&
     {
         const ConfigRecordType& thisHMM = readerConfig(hmmNames[i]);
 
-        cdphonetyingpaths.push_back(thisHMM(L"phoneFile"));
+        cdphonetyingpaths.emplace_back(thisHMM(L"phoneFile"));
         transPspaths.push_back(thisHMM(L"transPFile", L""));
     }
 
@@ -359,7 +359,7 @@ void HTKMLFReader<ElemType>::PrepareForTrainingOrTesting(const ConfigRecordType&
             n++;
         }
 
-        fprintf(stderr, " %lu entries\n", n);
+        fprintf(stderr, " %zu entries\n", n);
 
         if (i == 0)
             numFiles = n;
@@ -667,7 +667,7 @@ void HTKMLFReader<ElemType>::PrepareForWriting(const ConfigRecordType& readerCon
         }
 
         m_featureNameToIdMap[featureNames[i]] = iFeat;
-        scriptpaths.push_back(thisFeature(L"scpFile"));
+        scriptpaths.emplace_back(thisFeature(L"scpFile"));
         m_featureNameToDimMap[featureNames[i]] = realDims[i];
 
         m_featuresBufferMultiIO.push_back(nullptr);
