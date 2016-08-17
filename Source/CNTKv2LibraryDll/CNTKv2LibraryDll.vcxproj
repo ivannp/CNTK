@@ -107,6 +107,8 @@
   <ItemDefinitionGroup Condition="$(CpuOnlyBuild)">
     <ClCompile>
       <PreprocessorDefinitions>CPUONLY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release_CpuOnly|x64'">4456;4458;4459</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug_CpuOnly|x64'">4456;4458;4459</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <DelayLoadDLLs>Math.dll</DelayLoadDLLs>
@@ -115,6 +117,8 @@
   <ItemDefinitionGroup Condition="$(GpuBuild)">
     <ClCompile>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(CudaInclude)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4456;4458;4459</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4456;4458;4459</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);$(CudaLibPath)</AdditionalLibraryDirectories>

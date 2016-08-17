@@ -87,11 +87,11 @@ namespace CNTK
             if (replacingVariable.IsOutput())
             {
                 auto ownerFunc = replacingVariable.Owner();
-                std::unordered_set<FunctionPtr> visitedFunctions;
-                DetermineInputs(ownerFunc, visitedFunctions);
+                std::unordered_set<FunctionPtr> vf;
+                DetermineInputs(ownerFunc, vf);
 
                 // Add the newly visited functions to 'm_allPrimitiveFunctions' set
-                m_allPrimitiveFunctions.insert(visitedFunctions.begin(), visitedFunctions.end());
+                m_allPrimitiveFunctions.insert(vf.begin(), vf.end());
             }
         }
     }
