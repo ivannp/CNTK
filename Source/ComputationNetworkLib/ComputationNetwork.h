@@ -136,6 +136,10 @@ public:
     // main entry point for backprop
     void Backprop(const ComputationNodeBasePtr rootNode);
 
+    // partial forward entry
+    void ForwardProp(const ComputationNodeBasePtr rootNode, const ComputationNodeBasePtr startNode, 
+                     const ComputationNodeBasePtr endNode);
+
     template <class NODESET> // version that takes multiple nodes
     void ForwardProp(const NODESET& nodes)
     {
@@ -258,13 +262,20 @@ public:
         m_evalOrders[rootNode] = nodes;
     }
 
+    bool EvalOrderExists(const ComputationNodeBasePtr& rootNode) const
+    {
+        return m_evalOrders.find(rootNode) != m_evalOrders.end();
+    }
+
     // get depth-first traversal order
     // TODO: This is currently not immutable because it gets patched w.r.t. recurrent loops. Ideally we don't patch. Need to review and verify that it is sufficient.
     const std::list<ComputationNodeBasePtr>& GetEvalOrder(const ComputationNodeBasePtr& rootNode) const
     {
         auto iter = m_evalOrders.find(rootNode);
         if (iter == m_evalOrders.end())
+        {
             LogicError("GetEvalOrder: Called without prior call to FormEvalOrder() for %ls %ls operation", rootNode->NodeName().c_str(), rootNode->OperationName().c_str());
+        }
         return iter->second;
     }
 
@@ -341,6 +352,9 @@ public:
     // non-static version needed because it accesses m_randomSeedOffset
     // Legacy version that is for random only.
     void RandomInitLearnableParameters(const ComputationNodeBasePtr& node, const bool uniformInit, const unsigned long randomSeed, const double initValueScale, bool initOnCPUOnly = false) const;
+
+    template <class ElemType>
+    void InitLearnableParametersWithBilinearFill(const ComputationNodeBasePtr& node, size_t kernelWidth, size_t kernelHeight);
 
     template <typename N>
     static shared_ptr<N> AsNodePtr(const ComputationNodeBasePtr& inode)
@@ -794,6 +808,12 @@ public:
     // diagnostics
     // -----------------------------------------------------------------------
 
+    void SetTraceLevel(int traceLevel)
+    {
+        m_environment->traceLevel = traceLevel;
+    }
+    int TraceLevel() const { return m_environment->traceLevel; }
+
     // call EnableNodeTracing() on the given nodes for real, category, and sparse printing
     void EnableNodeTracing(const std::vector<std::wstring>& traceNodeNamesReal,
                            const std::vector<std::wstring>& traceNodeNamesCategory,
@@ -1024,6 +1044,9 @@ protected:
         virtual void AllocateGradientMatricesForInputs(MatrixPool& matrixPool);
         virtual void RequestMatricesBeforeBackprop(MatrixPool& matrixPool);
         virtual void ReleaseMatricesAfterBackprop(MatrixPool& matrixPool);
+
+        // TODO: Why is this virtual?
+        virtual void ForwardProp(const FrameRange&, const ComputationNodeBasePtr, const ComputationNodeBasePtr) override;
 
     public:
         // this special constructor constructs the top-level network node

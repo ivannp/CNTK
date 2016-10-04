@@ -8,7 +8,9 @@
 #include "stdafx.h"
 #include "Basics.h"
 #include "BrainScriptParser.h"
+#include "BrainScriptTestsHelper.h"
 #include "boost/filesystem.hpp"
+#include <boost/algorithm/string.hpp>
 
 #include <utility>
 
@@ -20,46 +22,38 @@ using namespace Microsoft::MSR::CNTK;
 #define let const auto
 #endif
 
-struct ParserTestsFixture
-{
-public:
-    ParserTestsFixture(){
-        boost::filesystem::path path(boost::unit_test::framework::master_test_suite().argv[0]);
-        wstring parentPath = boost::filesystem::canonical(path.parent_path()).generic_wstring();
-
-#ifdef _WIN32
-        // The executable path on Windows is e.g. <cntk>/x64/Debug/Unittests/
-        m_testDataPath = parentPath + L"/../../../Tests/UnitTests/BrainScriptTests";
-#else
-        // The executable path on Linux is e.g. <cntk>/build/cpu/release/bin/
-        m_testDataPath = parentPath + L"/../../../../Tests/UnitTests/BrainScriptTests";
-#endif
-
-        boost::filesystem::path absTestPath(m_testDataPath);
-        absTestPath = boost::filesystem::canonical(absTestPath);
-        m_testDataPath = absTestPath.generic_wstring();
-    }
-
-    const wstring getDataPath(){
-        return m_testDataPath;
-    }
-private:
-    wstring m_testDataPath;
-};
-
-
 namespace Microsoft { namespace MSR { namespace CNTK { namespace Test {
 
-BOOST_FIXTURE_TEST_SUITE(ParserTests, ParserTestsFixture)
+BOOST_FIXTURE_TEST_SUITE(ParserSuite, BSFixture)
 
-void parseLine(const wstring & input, const wstring & expectedOutput)
+// normalize strings:
+//  - remove CR characters (so that we can create the reference on Windows)
+//  - trailing spaces (which are impossible to copy-paste from screen output)
+static void Normalize(wstring& s)
+{
+    boost::replace_all(s, L"\r", L"");
+    //boost::trim_right_if(s, boost::is_any_of(L" \n"));
+    // ^^ fails with 'std::_Copy_impl': Function call with parameters that may be unsafe
+    // this ugly version compiles:
+    while (!s.empty() && (s.back() == ' ' || s.back() == '\n'))
+        s.pop_back();
+}
+
+void parseLine(wstring input, wstring expectedOutput)
 {
     let expr = BS::ParseConfigDictFromString(input, L"Test", vector<wstring>());
 
     wstringstream actualStream;
     expr->DumpToStream(actualStream);
 
-    BOOST_TEST(actualStream.str() == expectedOutput, boost::test_tools::per_element());
+    wstring actualOutput = actualStream.str();
+
+    // we normalize for newlines and trailing spaces
+    Normalize(expectedOutput);
+    Normalize(actualOutput);
+    //printf("%ls\n", wstring (actualStream.str()).c_str());
+
+    BOOST_TEST(actualOutput == expectedOutput, boost::test_tools::per_element());
 }
 
 BOOST_AUTO_TEST_CASE(ParseExpressionsAndCompareTree)
@@ -87,7 +81,8 @@ BOOST_AUTO_TEST_CASE(ParseExpressionsAndCompareTree)
         outputFile.open(wtocharpath(outputPath.c_str()).c_str(), wifstream::in);
 #endif
 
-        if (!inputFile.is_open()){
+        if (!inputFile.is_open())
+        {
             filesAvailable = false;
             continue;
         }
@@ -107,4 +102,4 @@ BOOST_AUTO_TEST_CASE(ParseExpressionsAndCompareTree)
 
 BOOST_AUTO_TEST_SUITE_END()
 
-} } } }
+}}}}

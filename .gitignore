@@ -191,7 +191,20 @@ Source/CNTK/buildinfo.h$$
 # Unit test output
 Tests/UnitTests/ReaderTests/Control/**/*_Output.txt
 Tests/UnitTests/NetworkTests/Output/
+Tests/EndToEndTests/UnitTests/MathTests/M.txt
+Tests/EndToEndTests/UnitTests/MathTests/MCPU.txt
+Tests/EndToEndTests/UnitTests/MathTests/MGPU.txt
+Tests/EndToEndTests/UnitTests/MathTests/MS.txt
 
 Dependencies/CNTKCustomMKL/Publish
 Dependencies/CNTKCustomMKL/CNTKCustomMKL-Linux-*.tgz
 Dependencies/CNTKCustomMKL/CNTKCustomMKL-Windows-*.zip
+
+# Python bindings
+bindings/python/_cntk_py.pyd
+bindings/python/cntk.egg-info/
+bindings/python/cntk/cntk_py.py
+bindings/python/cntk/libs/
+bindings/python/cntk/swig/cntk_py_wrap.cxx
+bindings/python/cntk/swig/cntk_py_wrap.h
+bindings/python/dist/

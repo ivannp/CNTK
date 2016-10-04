@@ -27,8 +27,8 @@ namespace Microsoft { namespace MSR { namespace CNTK {
 
 double logadd(double x, double y);
 
-//To compy with BLAS libraries matrices are stored in ColMajor. However, by default C/C++/C# use RowMajor
-//convertion is need when passing data between CPUMatrix and C++ matrices
+// To comply with BLAS libraries matrices are stored in ColMajor. However, by default C/C++/C# use RowMajor
+// conversion is need when passing data between CPUMatrix and C++ matrices
 template <class ElemType>
 class MATH_API CPUMatrix : public BaseMatrix<ElemType>
 {
@@ -63,6 +63,7 @@ public:
 
 public:
     CPUMatrix();
+    CPUMatrix(const CPUMatrix<ElemType>& shallowCopyFrom, bool shallow);     // copy constructor, shallow
     CPUMatrix(const size_t numRows, const size_t numCols);
     CPUMatrix(const size_t numRows, const size_t numCols, ElemType* pArray, const size_t matrixFlags = matrixFlagNormal);
     CPUMatrix(const CPUMatrix<ElemType>& deepCopyFrom);                      // copy constructor, deep copy
@@ -70,15 +71,13 @@ public:
     CPUMatrix(CPUMatrix<ElemType>&& moveFrom);                               // move constructor, shallow copy
     CPUMatrix<ElemType>& operator=(CPUMatrix<ElemType>&& moveFrom);          // move assignment operator, shallow copy
 
-    ~CPUMatrix();
-
 public:
     size_t BufferSize() const
     {
         return m_numRows * m_numCols * sizeof(ElemType);
     }
 
-    // Returns pointer into underlying data buffer correspoinding to slice-view. This makes it different from method Buffer()
+    // Returns pointer into underlying data buffer corresponding to slice-view. This makes it different from method Buffer()
     ElemType* Data() const
     {
         return Buffer() + m_sliceViewOffset;
@@ -375,13 +374,15 @@ public:
     void AveragePoolingBackward(const CPUMatrix<int>& mpRowCol, const CPUMatrix<int>& mpRowIndices, const CPUMatrix<int>& indices,
                                 CPUMatrix<ElemType>& grad) const;
 
-    void BatchNormalizationForward(const CPUMatrix<ElemType>& scale, const CPUMatrix<ElemType>& bias, double expAvgFactor, double blendFactor, CPUMatrix<ElemType>& runMean, CPUMatrix<ElemType>& runInvStdDev,
+    void BatchNormalizationForward(const CPUMatrix<ElemType>& scale, const CPUMatrix<ElemType>& bias, bool inferenceOnly, double expAvgFactor, double blendFactor, CPUMatrix<ElemType>& runMean, CPUMatrix<ElemType>& runVariance,
                                    CPUMatrix<ElemType>& out, double epsilon, CPUMatrix<ElemType>& saveMean, CPUMatrix<ElemType>& saveInvStdDev) const;
     void BatchNormalizationBackward(const CPUMatrix<ElemType>& in, CPUMatrix<ElemType>& grad, const CPUMatrix<ElemType>& scale, double blendFactor, const CPUMatrix<ElemType>& saveMean, const CPUMatrix<ElemType>& saveInvStdDev,
                                     CPUMatrix<ElemType>& scaleGrad, CPUMatrix<ElemType>& biasGrad) const;
 
 public:
-    static int SetNumThreads(int numThreads); // note: this does not depend on <ElemType>, i.e. you can call it on any <ElemType>
+    // This functions do not depend on <ElemType>, i.e. you can call them on any <ElemType>
+    static int SetNumThreads(int numThreads);
+    static void SetCompatibleMode();
 
     // static BLAS functions
     static void SVD(const CPUMatrix<ElemType>& A, CPUMatrix<ElemType>& SIGMA, CPUMatrix<ElemType>& U, CPUMatrix<ElemType>& VT, CPUMatrix<ElemType>& W);
