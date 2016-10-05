@@ -73,6 +73,8 @@ static inline FILE *_wfopen(const wchar_t *path, const wchar_t *mode)
 
 #endif
 
+extern std::wstring s_tempModelPath;
+
 template <typename ElementType>
 inline void SaveAndReloadModel(CNTK::FunctionPtr& functionPtr, const std::vector<CNTK::Variable*>& variables, const CNTK::DeviceDescriptor& device)
 {
@@ -91,8 +93,8 @@ inline void SaveAndReloadModel(CNTK::FunctionPtr& functionPtr, const std::vector
             std::runtime_error("SaveAndReloadModel: Multiple variables having same name cannot be restored after save and reload");
     }
 
-    CNTK::SaveAsLegacyModel<ElementType>(functionPtr, s_tempModelPath);
-    functionPtr = CNTK::LoadLegacyModel<ElementType>(functionPtr->Outputs()[0].GetDataType(), s_tempModelPath, device);
+    CNTK::SaveAsLegacyModel(functionPtr, s_tempModelPath);
+    functionPtr = CNTK::LoadLegacyModel(functionPtr->Outputs()[0].GetDataType(), s_tempModelPath, device);
 
     if (_wunlink(tempModelPath.c_str()) != 0)
          std::runtime_error("Error deleting temp model file 'feedForward.net'");
